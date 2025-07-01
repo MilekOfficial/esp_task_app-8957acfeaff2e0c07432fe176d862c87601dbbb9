@@ -244,7 +244,7 @@
                           '<td>' + t.id + '</td>' +
                           '<td>' + t.task + '</td>' +
                           '<td>' + timestamp + '</td>' +
-                          '<td><button class="delete-btn" onclick="deleteTask(' + t.id + ')">Delete</button></td>';
+                          '<td><button class="delete-btn" onclick="deleteTask(\'' + t.id + '\')">Delete</button></td>';
                       tableBody.appendChild(tr);
                   });
               }
