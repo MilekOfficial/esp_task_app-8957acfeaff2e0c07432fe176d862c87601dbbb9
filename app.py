@@ -19,6 +19,13 @@ def init_db():
             timestamp TEXT NOT NULL
         )
     ''')
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS gamification (
+            key TEXT PRIMARY KEY,
+            value INTEGER NOT NULL
+        )
+    ''')
+    conn.execute('INSERT OR IGNORE INTO gamification (key, value) VALUES (?, ?)', ('score', 0))
     conn.commit()
     conn.close()
 
@@ -46,6 +53,11 @@ def add_task():
     cursor = conn.cursor()
     cursor.execute('INSERT INTO tasks (task, timestamp) VALUES (?, ?)', (task_content, timestamp))
     new_id = cursor.lastrowid
+
+    # Gamification: Add points if the task is from the ESP32
+    if task_content == "Task done from ESP32":
+        cursor.execute('UPDATE gamification SET value = value + ? WHERE key = ?', (10, 'score'))
+
     conn.commit()
     conn.close()
 
@@ -55,6 +67,14 @@ def add_task():
         "timestamp": timestamp
     }
     return jsonify({"status": "ok", "task": new_task}), 201
+
+@app.route('/api/score', methods=['GET'])
+def get_score():
+    conn = get_db_conn()
+    score_row = conn.execute('SELECT value FROM gamification WHERE key = ?', ('score',)).fetchone()
+    conn.close()
+    score = score_row['value'] if score_row else 0
+    return jsonify({"score": score})
 
 @app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
 def delete_task(task_id):
